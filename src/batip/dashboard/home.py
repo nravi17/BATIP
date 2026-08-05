@@ -1,28 +1,33 @@
 import streamlit as st
 
+from batip.dashboard.header import show_header
+from batip.dashboard.layout import show_layout
+from batip.dashboard.metrics import show_metrics
+from batip.dashboard.sidebar import show_sidebar
+from batip.dashboard.theme import load_theme
+
 
 def run_dashboard():
 
     st.set_page_config(
-        page_title="BATIP",
+        page_title="BATIP PRO",
         page_icon="📈",
-        layout="wide"
+        layout="wide",
     )
 
-    st.title("📈 BATIP")
+    load_theme()
 
-    st.subheader("BankNifty AI Trading Intelligence Platform")
+    symbol, expiry, refresh = show_sidebar()
 
-    st.success("Sprint 1 Successfully Running")
+    show_header()
 
-    c1, c2, c3 = st.columns(3)
+    st.caption(f"Selected Index: **{symbol}** | Expiry: **{expiry}**")
 
-    c1.metric("Spot", "--")
+    if refresh:
+        st.toast("Refreshing market data...")
 
-    c2.metric("PCR", "--")
-
-    c3.metric("AI Score", "--")
+    show_metrics()
 
     st.divider()
 
-    st.info("Welcome to BATIP 🚀")
+    show_layout()
