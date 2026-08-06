@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-
-from batip.models import OptionChain
+from batip.models.option_chain import OptionChain
 
 
 class OIType(str, Enum):

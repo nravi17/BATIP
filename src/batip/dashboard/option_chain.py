@@ -11,22 +11,33 @@ from batip.models import OptionChain
 
 
 def option_chain_dataframe(chain: OptionChain) -> pd.DataFrame:
-    """Convert OptionChain into a DataFrame."""
+    """Convert OptionChain into a formatted DataFrame."""
 
     rows = []
 
+    spot = chain.spot_price
+
     for strike in chain.strikes:
+
+        if abs(strike.strike - spot) < 50:
+            strike_type = "🟡 ATM"
+        elif strike.strike < spot:
+            strike_type = "ITM"
+        else:
+            strike_type = "OTM"
+
         rows.append(
             {
-                "Call OI": strike.call.open_interest,
-                "Call Chg OI": strike.call.change_in_oi,
-                "Call IV": strike.call.implied_volatility,
-                "Call LTP": strike.call.last_price,
+                "Call OI": f"{strike.call.open_interest:,}",
+                "Call Chg OI": f"{strike.call.change_in_oi:,}",
+                "Call IV": f"{strike.call.implied_volatility:.2f}",
+                "Call LTP": f"{strike.call.last_price:.2f}",
                 "Strike": strike.strike,
-                "Put LTP": strike.put.last_price,
-                "Put IV": strike.put.implied_volatility,
-                "Put Chg OI": strike.put.change_in_oi,
-                "Put OI": strike.put.open_interest,
+                "Type": strike_type,
+                "Put LTP": f"{strike.put.last_price:.2f}",
+                "Put IV": f"{strike.put.implied_volatility:.2f}",
+                "Put Chg OI": f"{strike.put.change_in_oi:,}",
+                "Put OI": f"{strike.put.open_interest:,}",
             }
         )
 

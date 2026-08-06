@@ -3,8 +3,7 @@ BATIP Max Pain Calculator
 """
 
 from dataclasses import dataclass
-
-from batip.models import OptionChain
+from batip.models.option_chain import OptionChain
 
 
 @dataclass(slots=True)

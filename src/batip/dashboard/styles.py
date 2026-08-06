@@ -1,15 +1,25 @@
-"""
-BATIP Dashboard Styles
-"""
+import streamlit as st
 
-PRIMARY_COLOR = "#2563EB"
-SUCCESS_COLOR = "#16A34A"
-WARNING_COLOR = "#F59E0B"
-DANGER_COLOR = "#DC2626"
 
-BACKGROUND = "#0F172A"
-CARD_BACKGROUND = "#1E293B"
-TEXT = "#F8FAFC"
-SUBTEXT = "#CBD5E1"
+def load_styles() -> None:
 
-CARD_RADIUS = 12
+    st.markdown(
+        """
+        <style>
+
+        .block-container{
+            padding-top:1rem;
+            padding-bottom:1rem;
+        }
+
+        div[data-testid="stMetric"]{
+            border-radius:12px;
+            padding:14px;
+            background:#1f2937;
+            border:1px solid #374151;
+        }
+
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )

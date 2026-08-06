@@ -19,6 +19,9 @@ class MockProvider(MarketDataProvider):
         self,
         symbol: str = "BANKNIFTY",
     ) -> OptionChain:
+        """
+        Return a mock option chain for UI development.
+        """
 
         chain = OptionChain(
             symbol=symbol,
@@ -29,13 +32,24 @@ class MockProvider(MarketDataProvider):
 
         for strike in range(57100, 59200, 100):
 
+            # Mock option premium
+            call_price = max(
+                5.0,
+                450 - abs(strike - 58100) * 2,
+            )
+
+            put_price = max(
+                5.0,
+                450 - abs(58100 - strike) * 2,
+            )
+
             call = OptionLeg(
                 strike=strike,
                 option_type="CE",
-                last_price=max(10, 300 - abs(58100 - strike) / 2),
-                bid_price=100,
-                ask_price=101,
-                volume=10000,
+                last_price=call_price,
+                bid_price=max(call_price - 1, 1),
+                ask_price=call_price + 1,
+                volume=10000 + (59100 - strike),
                 open_interest=400000 + (58100 - strike) * 10,
                 change_in_oi=5000,
                 implied_volatility=14.5,
@@ -44,10 +58,10 @@ class MockProvider(MarketDataProvider):
             put = OptionLeg(
                 strike=strike,
                 option_type="PE",
-                last_price=max(10, 300 - abs(strike - 58100) / 2),
-                bid_price=99,
-                ask_price=100,
-                volume=9000,
+                last_price=put_price,
+                bid_price=max(put_price - 1, 1),
+                ask_price=put_price + 1,
+                volume=9000 + (strike - 57100),
                 open_interest=420000 + (strike - 58100) * 10,
                 change_in_oi=4500,
                 implied_volatility=15.0,

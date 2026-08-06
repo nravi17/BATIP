@@ -1,3 +1,7 @@
+"""
+BATIP Domain Models
+"""
+
 from .market import (
     SpotQuote,
     FutureQuote,

@@ -3,7 +3,7 @@ Put Call Ratio (PCR) Calculator.
 """
 
 from batip.analytics.models import AnalyticsResult
-from batip.models import OptionChain
+from batip.models.option_chain import OptionChain
 
 
 class PCRCalculator:
