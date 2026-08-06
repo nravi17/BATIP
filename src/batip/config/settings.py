@@ -1,26 +1,42 @@
-from pathlib import Path
+"""
+BATIP Configuration
+"""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-BASE_DIR = Path(__file__).resolve().parents[3]
-
-
 class Settings(BaseSettings):
+    """Application settings."""
+
+    # Project
     APP_NAME: str = "BATIP"
     APP_VERSION: str = "0.1.0"
 
-    API_HOST: str = "127.0.0.1"
-    API_PORT: int = 8000
+    # NSE
+    NSE_BASE_URL: str = "https://www.nseindia.com"
+    OPTION_CHAIN_URL: str = (
+        "https://www.nseindia.com/api/option-chain-indices"
+    )
+    MARKET_STATUS_URL: str = (
+        "https://www.nseindia.com/api/marketStatus"
+    )
 
-    DEBUG: bool = True
+    # HTTP
+    REQUEST_TIMEOUT: int = 15
+    MAX_RETRIES: int = 3
 
-    DATABASE_URL: str = "sqlite:///batip.db"
+    USER_AGENT: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/138.0 Safari/537.36"
+    )
 
-    LOG_LEVEL: str = "INFO"
+    # Cache
+    CACHE_TTL_SECONDS: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"
+        extra="ignore",
     )
 
 

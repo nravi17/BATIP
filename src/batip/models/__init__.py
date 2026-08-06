@@ -4,6 +4,7 @@ from .market import (
     VixQuote,
     MarketStatus,
     ExpiryInfo,
+    MarketSnapshot,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "VixQuote",
     "MarketStatus",
     "ExpiryInfo",
+    "MarketSnapshot",
 ]

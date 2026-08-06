@@ -43,3 +43,11 @@ class ExpiryInfo:
     current_week: str
     next_week: str
     monthly: str
+    
+@dataclass(slots=True)
+class MarketSnapshot:
+    spot: SpotQuote
+    future: FutureQuote
+    vix: VixQuote
+    status: MarketStatus
+    expiry: ExpiryInfo
