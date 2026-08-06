@@ -7,6 +7,12 @@ from .market import (
     MarketSnapshot,
 )
 
+from .option_chain import (
+    OptionLeg,
+    OptionStrike,
+    OptionChain,
+)
+
 __all__ = [
     "SpotQuote",
     "FutureQuote",
@@ -14,4 +20,7 @@ __all__ = [
     "MarketStatus",
     "ExpiryInfo",
     "MarketSnapshot",
+    "OptionLeg",
+    "OptionStrike",
+    "OptionChain",
 ]
