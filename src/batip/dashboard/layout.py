@@ -1,20 +1,21 @@
-import streamlit as st
+"""
+Dashboard Layout
+"""
+
+from __future__ import annotations
+
+from batip.dashboard.header import render_header
+from batip.dashboard.metrics import render_metrics
+from batip.dashboard.footer import render_footer
+from batip.dashboard.option_chain import render_option_chain
 
 
-def show_layout():
+def render_dashboard(data: dict) -> None:
 
-    st.subheader("Live Option Chain")
+    render_header()
 
-    st.info("Live data module will be connected in Sprint 2.")
+    render_metrics(data)
 
-    left, right = st.columns(2)
+    render_option_chain(data["chain"])
 
-    with left:
-        st.subheader("Support & Resistance")
-
-        st.empty()
-
-    with right:
-        st.subheader("Strategy Recommendation")
-
-        st.empty()
+    render_footer()

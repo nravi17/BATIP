@@ -1,19 +1,19 @@
+"""
+Dashboard Header
+"""
+
 import streamlit as st
-from datetime import datetime
 
 
-def show_header():
+def render_header() -> None:
 
-    left, right = st.columns([4, 1])
+    st.set_page_config(
+        page_title="BATIP Pro",
+        layout="wide",
+    )
 
-    with left:
-        st.title("📈 BATIP PRO")
-        st.caption("BankNifty AI Trading Intelligence Platform")
+    st.title("📈 BATIP Pro")
 
-    with right:
-        st.metric(
-            "Last Refresh",
-            datetime.now().strftime("%H:%M:%S"),
-        )
-
-    st.divider()
+    st.caption(
+        "BankNifty Analytics & Trading Intelligence Platform"
+    )

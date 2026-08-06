@@ -1,33 +1,18 @@
-import streamlit as st
+"""
+Dashboard Home
+"""
 
-from batip.dashboard.header import show_header
-from batip.dashboard.layout import show_layout
-from batip.dashboard.metrics import show_metrics
-from batip.dashboard.sidebar import show_sidebar
-from batip.dashboard.theme import load_theme
+from batip.dashboard.layout import render_dashboard
+from batip.providers.mock_provider import MockProvider
+from batip.services.market_service import MarketService
 
 
 def run_dashboard():
 
-    st.set_page_config(
-        page_title="BATIP PRO",
-        page_icon="📈",
-        layout="wide",
-    )
+    provider = MockProvider()
 
-    load_theme()
+    service = MarketService(provider)
 
-    symbol, expiry, refresh = show_sidebar()
+    dashboard_data = service.get_dashboard_data()
 
-    show_header()
-
-    st.caption(f"Selected Index: **{symbol}** | Expiry: **{expiry}**")
-
-    if refresh:
-        st.toast("Refreshing market data...")
-
-    show_metrics()
-
-    st.divider()
-
-    show_layout()
+    render_dashboard(dashboard_data)

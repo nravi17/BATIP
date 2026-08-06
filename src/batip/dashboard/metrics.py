@@ -1,14 +1,35 @@
+"""
+Dashboard Metrics
+"""
+
 import streamlit as st
 
 
-def show_metrics():
+def render_metrics(data: dict) -> None:
+    """Render top metrics."""
 
-    c1, c2, c3, c4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
-    c1.metric("Spot", "--")
+    with col1:
+        st.metric(
+            "Spot",
+            f"{data['chain'].spot_price:,.2f}",
+        )
 
-    c2.metric("Future", "--")
+    with col2:
+        st.metric(
+            "PCR",
+            f"{data['pcr'].value:.2f}",
+        )
 
-    c3.metric("PCR", "--")
+    with col3:
+        st.metric(
+            "Max Pain",
+            data["max_pain"].strike,
+        )
 
-    c4.metric("AI Score", "--")
+    with col4:
+        st.metric(
+            "Support",
+            data["support"].support,
+        )
