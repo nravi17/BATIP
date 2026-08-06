@@ -1,25 +1,37 @@
+"""
+BATIP Global Styles
+"""
+
+from __future__ import annotations
+
 import streamlit as st
 
 
 def load_styles() -> None:
+    """
+    Global BATIP theme.
+    """
 
     st.markdown(
         """
-        <style>
+<style>
 
-        .block-container{
-            padding-top:1rem;
-            padding-bottom:1rem;
-        }
+.block-container{
+    padding-top:2rem;
+    padding-bottom:2rem;
+}
 
-        div[data-testid="stMetric"]{
-            border-radius:12px;
-            padding:14px;
-            background:#1f2937;
-            border:1px solid #374151;
-        }
+div[data-testid="stMetric"]{
+    background:#1E293B;
+    border-radius:14px;
+    padding:12px;
+}
 
-        </style>
-        """,
+table{
+    font-size:15px;
+}
+
+</style>
+""",
         unsafe_allow_html=True,
     )
