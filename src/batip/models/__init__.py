@@ -17,6 +17,11 @@ from .option_chain import (
     OptionChain,
 )
 
+from .dashboard_data import (
+    DashboardData,
+)
+
+
 __all__ = [
     "SpotQuote",
     "FutureQuote",
@@ -27,4 +32,5 @@ __all__ = [
     "OptionLeg",
     "OptionStrike",
     "OptionChain",
+    "DashboardData",
 ]
