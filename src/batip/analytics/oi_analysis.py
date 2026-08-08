@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+
 from batip.models.option_chain import OptionChain
 
 
@@ -13,27 +14,24 @@ class OIType(str, Enum):
 
 @dataclass(slots=True)
 class OIAnalysis:
-
     strike: float
-
     option_type: str
-
     price_change: float
-
     oi_change: int
-
     signal: OIType
 
+
 class OIAnalyzer:
-    """
-    Analyze Open Interest (OI) build-up patterns.
-    """
+    """Analyze Open Interest build-up patterns."""
 
     def __init__(self, chain: OptionChain):
         self.chain = chain
 
     @staticmethod
-    def classify(price_change: float, oi_change: int) -> OIType:
+    def classify(
+        price_change: float,
+        oi_change: int,
+    ) -> OIType:
 
         if price_change > 0 and oi_change > 0:
             return OIType.LONG_BUILDUP
@@ -55,14 +53,8 @@ class OIAnalyzer:
 
         for strike in self.chain.strikes:
 
-            # Temporary approximation until we add previous_close
-            call_price_change = (
-                strike.call.last_price - strike.call.bid_price
-            )
-
-            put_price_change = (
-                strike.put.last_price - strike.put.bid_price
-            )
+            call_price_change = strike.call.price_change
+            put_price_change = strike.put.price_change
 
             results.append(
                 OIAnalysis(

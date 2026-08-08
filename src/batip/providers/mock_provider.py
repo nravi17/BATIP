@@ -1,7 +1,6 @@
 """
 Mock Provider
 """
-
 from datetime import datetime
 
 from batip.models import (
@@ -22,7 +21,6 @@ class MockProvider(MarketDataProvider):
         """
         Return a mock option chain for UI development.
         """
-
         chain = OptionChain(
             symbol=symbol,
             expiry="13-Aug-2026",
@@ -31,13 +29,11 @@ class MockProvider(MarketDataProvider):
         )
 
         for strike in range(57100, 59200, 100):
-
             # Mock option premium
             call_price = max(
                 5.0,
                 450 - abs(strike - 58100) * 2,
             )
-
             put_price = max(
                 5.0,
                 450 - abs(58100 - strike) * 2,
@@ -74,5 +70,8 @@ class MockProvider(MarketDataProvider):
                     put=put,
                 )
             )
+
+        chain.source = "MOCK"
+        chain.data_status = "MOCK"
 
         return chain

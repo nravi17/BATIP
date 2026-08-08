@@ -3,6 +3,7 @@ Support & Resistance Calculator
 """
 
 from dataclasses import dataclass
+
 from batip.models.option_chain import OptionChain
 
 
@@ -21,13 +22,36 @@ class SupportResistanceCalculator:
 
     def calculate(self) -> SupportResistanceResult:
 
+        spot = self.chain.spot_price
+
+        # Support must be BELOW spot.
+        support_candidates = [
+            strike
+            for strike in self.chain.strikes
+            if strike.strike < spot
+        ]
+
+        # Resistance must be ABOVE spot.
+        resistance_candidates = [
+            strike
+            for strike in self.chain.strikes
+            if strike.strike > spot
+        ]
+
+        # Fallback if the chain doesn't contain strikes on one side.
+        if not support_candidates:
+            support_candidates = list(self.chain.strikes)
+
+        if not resistance_candidates:
+            resistance_candidates = list(self.chain.strikes)
+
         strongest_support = max(
-            self.chain.strikes,
+            support_candidates,
             key=lambda strike: strike.put.open_interest,
         )
 
         strongest_resistance = max(
-            self.chain.strikes,
+            resistance_candidates,
             key=lambda strike: strike.call.open_interest,
         )
 

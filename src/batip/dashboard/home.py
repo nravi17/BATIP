@@ -4,7 +4,7 @@ Dashboard Home
 
 from batip.dashboard.layout import render_dashboard
 from batip.dashboard.styles import load_styles
-from batip.providers.mock_provider import MockProvider
+from batip.providers.factory import create_market_data_provider
 from batip.services.market_service import MarketService
 
 
@@ -15,7 +15,7 @@ def run_dashboard() -> None:
 
     load_styles()
 
-    provider = MockProvider()
+    provider = create_market_data_provider()
 
     service = MarketService(provider)
 
