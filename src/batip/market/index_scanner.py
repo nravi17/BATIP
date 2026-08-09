@@ -2,6 +2,7 @@
 BATIP Index Scanner.
 
 Evaluates normalized index snapshots and determines:
+
 - directional score
 - strongest index
 - weakest index
@@ -9,6 +10,8 @@ Evaluates normalized index snapshots and determines:
 
 This module does not place trades.
 """
+
+from __future__ import annotations
 
 from batip.market.models import (
     IndexSnapshot,
@@ -24,12 +27,20 @@ class IndexScanner:
     @staticmethod
     def score_index(index: IndexSnapshot) -> int:
         """
-        Convert an index move into a simple directional score.
+        Convert percentage movement into a normalized index score.
 
-        The scoring is intentionally deterministic and conservative.
+        Rules:
+            >= +1.0%  -> +2
+            >   0%    -> +1
+            == 0%     ->  0
+            <   0%    -> -1
+            <= -1.0%  -> -2
+
+        The existing ``index.score`` field is deliberately ignored.
+        The scanner owns the normalized scoring rules.
         """
 
-        change = index.change_percent
+        change = float(index.change_percent)
 
         if change >= 1.0:
             return 2
@@ -59,7 +70,16 @@ class IndexScanner:
 
     @staticmethod
     def regime_from_score(score: int) -> MarketRegime:
-        """Convert aggregate score into market regime."""
+        """
+        Convert aggregate score into market regime.
+
+        Index-only scoring:
+            >= +5 -> Strong Bullish
+            >= +2 -> Bullish
+            <= -5 -> Strong Bearish
+            <= -2 -> Bearish
+            otherwise Neutral
+        """
 
         if score >= 5:
             return MarketRegime.STRONG_BULLISH
@@ -77,20 +97,33 @@ class IndexScanner:
 
     def scan(
         self,
-        indices: list[IndexSnapshot],
+        indices: list[IndexSnapshot] | None = None,
     ) -> MarketSnapshot:
         """
         Analyze all supplied indices.
 
-        Existing IndexSnapshot objects are not mutated.
+        None entries are ignored.
+
+        An empty or missing index collection returns an unavailable,
+        neutral MarketSnapshot.
         """
 
         if not indices:
             return MarketSnapshot()
 
+        # Ignore invalid None entries.
+        valid_indices = [
+            index
+            for index in indices
+            if index is not None
+        ]
+
+        if not valid_indices:
+            return MarketSnapshot()
+
         analyzed: list[IndexSnapshot] = []
 
-        for index in indices:
+        for index in valid_indices:
             score = self.score_index(index)
 
             analyzed.append(
@@ -112,7 +145,10 @@ class IndexScanner:
                 )
             )
 
-        total_score = sum(index.score for index in analyzed)
+        total_score = sum(
+            self.score_index(index)
+            for index in valid_indices
+        )
 
         strongest = max(
             analyzed,
@@ -129,11 +165,17 @@ class IndexScanner:
         reasons: list[str] = []
 
         if total_score > 0:
-            reasons.append("Major indices show positive breadth of movement.")
+            reasons.append(
+                "Major indices show positive breadth of movement."
+            )
         elif total_score < 0:
-            reasons.append("Major indices show negative breadth of movement.")
+            reasons.append(
+                "Major indices show negative breadth of movement."
+            )
         else:
-            reasons.append("Major indices are mixed or unchanged.")
+            reasons.append(
+                "Major indices are mixed or unchanged."
+            )
 
         reasons.append(
             f"Strongest index: {strongest.symbol} "
