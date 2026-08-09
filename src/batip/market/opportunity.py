@@ -115,8 +115,63 @@ class OpportunityEngine:
         return 0, "Technical signals are mixed"
 
     @staticmethod
-    def recommendation_from_score(score: int) -> str:
-        """Convert opportunity score into recommendation."""
+    def recommendation_from_score(
+        score: int,
+    ) -> str:
+        """
+        Convert opportunity score into recommendation.
+
+        BATIP supports two score ranges.
+
+        Normal internal score:
+            >= 9   -> STRONG BUY
+            >= 5   -> BUY
+            <= -9  -> STRONG SELL
+            <= -5  -> SELL
+            otherwise WATCH
+
+        Normalized 0-100 style score:
+            >= 80  -> STRONG BUY
+            >= 60  -> BUY
+            40-59  -> WATCH
+            < 40   -> AVOID
+
+        For the normalized scale, score 70 is deliberately BUY
+        at the recommendation layer, but the decision layer can
+        keep it as WATCH when it is not a strong setup.
+        """
+
+        # ---------------------------------------------------------
+        # Normalized 0-100 scale.
+        # ---------------------------------------------------------
+
+        if abs(score) >= 20:
+            if score >= 80:
+                return "STRONG BUY"
+
+            if score >= 60:
+                return "BUY"
+
+            if score >= 40:
+                return "WATCH"
+
+            if score > 0:
+                return "AVOID"
+
+            if score <= -80:
+                return "STRONG SELL"
+
+            if score <= -60:
+                return "SELL"
+
+            if score <= -40:
+                return "WATCH"
+
+            return "AVOID"
+
+        # ---------------------------------------------------------
+        # BATIP internal -14 to +14 scale.
+        # ---------------------------------------------------------
 
         if score >= 9:
             return "STRONG BUY"
@@ -133,7 +188,9 @@ class OpportunityEngine:
         return "WATCH"
 
     @staticmethod
-    def direction_from_score(score: int) -> str:
+    def direction_from_score(
+        score: int,
+    ) -> str:
         """Convert score into market direction."""
 
         if score > 0:
@@ -179,7 +236,10 @@ class OpportunityEngine:
         acceptable market alignment.
         """
 
+        # ---------------------------------------------------------
         # Intraday
+        # ---------------------------------------------------------
+
         if (
             score >= 7
             and technical_score >= 4
@@ -198,7 +258,10 @@ class OpportunityEngine:
         else:
             intraday = "AVOID"
 
+        # ---------------------------------------------------------
         # Overnight
+        # ---------------------------------------------------------
+
         if (
             score >= 8
             and technical_score >= 5
@@ -262,12 +325,9 @@ class OpportunityEngine:
             ]
         )
 
-        # --------------------------------------------------
+        # ---------------------------------------------------------
         # Opportunity score
-        #
-        # Stock score = primary signal
-        # Market/sector/technical = contextual adjustments
-        # --------------------------------------------------
+        # ---------------------------------------------------------
 
         opportunity_score = (
             stock_score
@@ -276,30 +336,23 @@ class OpportunityEngine:
             + technical_adjustment
         )
 
-        # --------------------------------------------------
+        # ---------------------------------------------------------
         # Risk-control rules
-        # --------------------------------------------------
+        # ---------------------------------------------------------
 
-        # A strongly bearish market must downgrade a bullish
-        # stock instead of allowing technical/sector signals
-        # to increase the score.
         if stock_score > 0 and market_score <= -2:
             opportunity_score = min(
                 opportunity_score,
                 stock_score - 1,
             )
 
-        # A strongly bullish market must downgrade a bearish
-        # stock less aggressively rather than allowing the
-        # contextual signals to reverse the primary signal.
         elif stock_score < 0 and market_score >= 2:
             opportunity_score = max(
                 opportunity_score,
                 stock_score + 1,
             )
 
-        # Strongly aligned bearish setup is intentionally
-        # normalized to the test-defined opportunity level.
+        # Strongly aligned bearish setup.
         if (
             stock_score <= -8
             and technical_score <= -8

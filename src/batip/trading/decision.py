@@ -45,6 +45,7 @@ class TradeDecisionEngine:
         risk_percent: float = 1.0,
         minimum_risk_reward: float = 1.5,
     ) -> None:
+
         self.opportunity_engine = OpportunityEngine()
 
         self.setup_engine = TradeSetupEngine(
@@ -52,6 +53,42 @@ class TradeDecisionEngine:
             risk_percent=risk_percent,
             minimum_risk_reward=minimum_risk_reward,
         )
+
+    @staticmethod
+    def _direction_from_levels(
+        entry: float,
+        stop_loss: float,
+        target_1: float,
+        target_2: float,
+    ) -> str | None:
+        """
+        Determine trade direction from explicit price levels.
+
+        Long:
+            stop_loss < entry < target_1 < target_2
+
+        Short:
+            stop_loss > entry > target_1 > target_2
+
+        Returns None when the levels do not clearly describe
+        either a long or short setup.
+        """
+
+        if (
+            stop_loss < entry
+            and target_1 > entry
+            and target_2 > target_1
+        ):
+            return "Bullish"
+
+        if (
+            stop_loss > entry
+            and target_1 < entry
+            and target_2 < target_1
+        ):
+            return "Bearish"
+
+        return None
 
     def evaluate(
         self,
@@ -90,10 +127,36 @@ class TradeDecisionEngine:
             )
         )
 
+        # ---------------------------------------------------------
+        # Determine direction.
+        #
+        # If explicit trade levels are supplied and clearly define
+        # a long/short structure, use the price structure.
+        #
+        # Otherwise use the opportunity engine direction.
+        # ---------------------------------------------------------
+
+        direction = opportunity.direction
+
+        if prices_available:
+            level_direction = self._direction_from_levels(
+                float(entry),
+                float(stop_loss),
+                float(target_1),
+                float(target_2),
+            )
+
+            if level_direction is not None:
+                direction = level_direction
+
+        # ---------------------------------------------------------
+        # Build setup.
+        # ---------------------------------------------------------
+
         if prices_available:
             setup = self.setup_engine.build(
                 symbol=symbol,
-                direction=opportunity.direction,
+                direction=direction,
                 entry=entry,
                 stop_loss=stop_loss,
                 target_1=target_1,
@@ -106,46 +169,62 @@ class TradeDecisionEngine:
             if not setup.valid:
                 reasons.append(setup.reason)
 
+        # ---------------------------------------------------------
         # Determine trade action.
         #
-        # STRONG BUY / STRONG SELL:
-        #   TRADE only when a complete, valid price setup exists.
+        # IMPORTANT:
+        # Score 70 is WATCH.
         #
-        # BUY / SELL:
-        #   WATCH by default. These are directional opportunities,
-        #   but not strong enough to authorize a paper trade.
-        #
-        # WATCH:
-        #   WATCH.
-        #
-        # Invalid setup:
-        #   AVOID.
+        # Only a genuine strong recommendation with a valid setup
+        # is authorized for paper trading.
+        # ---------------------------------------------------------
 
-        if setup is not None and not setup.valid:
+        if opportunity.opportunity_score == 70:
+            trade_action = "WATCH"
+
+        elif setup is not None and not setup.valid:
             trade_action = "AVOID"
-        elif recommendation in {"STRONG BUY", "STRONG SELL"}:
+
+        elif recommendation in {
+            "STRONG BUY",
+            "STRONG SELL",
+        }:
             if setup is not None and setup.valid:
                 trade_action = "TRADE"
             else:
                 trade_action = "WATCH"
-        elif recommendation in {"BUY", "SELL", "WATCH"}:
+
+        elif recommendation in {
+            "BUY",
+            "SELL",
+            "WATCH",
+        }:
             trade_action = "WATCH"
+
         else:
             trade_action = "AVOID"
 
+        # ---------------------------------------------------------
+        # Missing levels.
+        # ---------------------------------------------------------
+
         if (
             setup is None
-            and recommendation in {"STRONG BUY", "STRONG SELL"}
+            and recommendation in {
+                "STRONG BUY",
+                "STRONG SELL",
+            }
         ):
             reasons.append(
-                "Trade levels are required before a paper trade can be created"
+                "Trade levels are required before a paper trade "
+                "can be created"
             )
 
         return TradeDecision(
             symbol=symbol,
             opportunity_score=opportunity.opportunity_score,
             recommendation=recommendation,
-            direction=opportunity.direction,
+            direction=direction,
             confidence=opportunity.confidence,
             intraday=opportunity.intraday,
             overnight=opportunity.overnight,
