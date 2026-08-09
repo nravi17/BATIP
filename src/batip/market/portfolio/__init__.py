@@ -18,9 +18,20 @@ from .recommendation import (
     PortfolioRecommendationSnapshot,
 )
 
+from .intelligence import (
+    PortfolioIntelligenceEngine,
+    PortfolioIntelligenceSnapshot,
+)
+
 __all__ = [
     "PortfolioSnapshot",
     "PortfolioSnapshotEngine",
     "PortfolioScoreSnapshot",
     "PortfolioScoringEngine",
+    "PortfolioRiskSnapshot",
+    "PortfolioRiskEngine",
+    "PortfolioRecommendationSnapshot",
+    "PortfolioRecommendationEngine",
+    "PortfolioIntelligenceSnapshot",
+    "PortfolioIntelligenceEngine",
 ]
