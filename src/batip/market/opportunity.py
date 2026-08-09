@@ -16,7 +16,6 @@ class OpportunitySnapshot:
 
     stock_score: int
     technical_score: int
-
     market_score: int
     sector_score: int
 
@@ -34,17 +33,34 @@ class OpportunitySnapshot:
 
 
 class OpportunityEngine:
-    """
-    Convert independent market signals into a unified
-    opportunity assessment.
-    """
+    """Convert independent market signals into one opportunity assessment."""
+
+    MIN_SCORE = -10
+    MAX_SCORE = 10
+
+    @classmethod
+    def _scores_are_valid(
+        cls,
+        stock_score: int,
+        technical_score: int,
+        market_score: int,
+        sector_score: int,
+    ) -> bool:
+        return all(
+            cls.MIN_SCORE <= score <= cls.MAX_SCORE
+            for score in (
+                stock_score,
+                technical_score,
+                market_score,
+                sector_score,
+            )
+        )
 
     @staticmethod
     def market_adjustment(
         stock_score: int,
         market_score: int,
     ) -> tuple[int, str]:
-        """Adjust opportunity according to market regime."""
 
         if stock_score > 0 and market_score <= -2:
             return -2, "Market regime is strongly bearish"
@@ -71,7 +87,6 @@ class OpportunityEngine:
         stock_score: int,
         sector_score: int,
     ) -> tuple[int, str]:
-        """Adjust opportunity according to sector strength."""
 
         if stock_score > 0 and sector_score >= 2:
             return 1, "Strong sector supports the stock"
@@ -92,7 +107,6 @@ class OpportunityEngine:
         stock_score: int,
         technical_score: int,
     ) -> tuple[int, str]:
-        """Reward technical confirmation and penalize divergence."""
 
         if stock_score > 0 and technical_score >= 6:
             return 2, "Technical signals strongly confirm bullish setup"
@@ -115,83 +129,30 @@ class OpportunityEngine:
         return 0, "Technical signals are mixed"
 
     @staticmethod
-    def recommendation_from_score(
-        score: int,
-    ) -> str:
-        """
-        Convert opportunity score into recommendation.
+    def recommendation_from_score(score: int) -> str:
 
-        BATIP supports two score ranges.
-
-        Normal internal score:
-            >= 9   -> STRONG BUY
-            >= 5   -> BUY
-            <= -9  -> STRONG SELL
-            <= -5  -> SELL
-            otherwise WATCH
-
-        Normalized 0-100 style score:
-            >= 80  -> STRONG BUY
-            >= 60  -> BUY
-            40-59  -> WATCH
-            < 40   -> AVOID
-
-        For the normalized scale, score 70 is deliberately BUY
-        at the recommendation layer, but the decision layer can
-        keep it as WATCH when it is not a strong setup.
-        """
-
-        # ---------------------------------------------------------
-        # Normalized 0-100 scale.
-        # ---------------------------------------------------------
-
-        if abs(score) >= 20:
-            if score >= 80:
-                return "STRONG BUY"
-
-            if score >= 60:
-                return "BUY"
-
-            if score >= 40:
-                return "WATCH"
-
-            if score > 0:
-                return "AVOID"
-
-            if score <= -80:
-                return "STRONG SELL"
-
-            if score <= -60:
-                return "SELL"
-
-            if score <= -40:
-                return "WATCH"
-
-            return "AVOID"
-
-        # ---------------------------------------------------------
-        # BATIP internal -14 to +14 scale.
-        # ---------------------------------------------------------
-
-        if score >= 9:
+        if score >= 8:
             return "STRONG BUY"
 
-        if score >= 5:
+        if score >= 4:
             return "BUY"
 
-        if score <= -9:
+        if score >= 1:
+            return "WATCH"
+
+        if score <= -8:
             return "STRONG SELL"
 
-        if score <= -5:
+        if score <= -4:
             return "SELL"
 
-        return "WATCH"
+        if score <= -1:
+            return "WATCH"
+
+        return "AVOID"
 
     @staticmethod
-    def direction_from_score(
-        score: int,
-    ) -> str:
-        """Convert score into market direction."""
+    def direction_from_score(score: int) -> str:
 
         if score > 0:
             return "Bullish"
@@ -206,16 +167,13 @@ class OpportunityEngine:
         score: int,
         technical_score: int,
     ) -> float:
-        """Estimate confidence and cap it below 100%."""
 
         confidence = 50.0 + abs(score) * 4.0
 
         if (
-            score > 0
-            and technical_score > 0
+            score > 0 and technical_score > 0
         ) or (
-            score < 0
-            and technical_score < 0
+            score < 0 and technical_score < 0
         ):
             confidence += 5.0
 
@@ -227,29 +185,11 @@ class OpportunityEngine:
         technical_score: int,
         market_score: int,
     ) -> tuple[str, str]:
-        """
-        Determine suitability for intraday and overnight trading.
 
-        Intraday requires stronger technical confirmation.
-
-        Overnight requires technical confirmation plus
-        acceptable market alignment.
-        """
-
-        # ---------------------------------------------------------
-        # Intraday
-        # ---------------------------------------------------------
-
-        if (
-            score >= 7
-            and technical_score >= 4
-        ):
+        if score >= 7 and technical_score >= 4:
             intraday = "FAVORABLE"
 
-        elif (
-            score <= -7
-            and technical_score <= -4
-        ):
+        elif score <= -7 and technical_score <= -4:
             intraday = "FAVORABLE"
 
         elif abs(score) >= 4:
@@ -257,10 +197,6 @@ class OpportunityEngine:
 
         else:
             intraday = "AVOID"
-
-        # ---------------------------------------------------------
-        # Overnight
-        # ---------------------------------------------------------
 
         if (
             score >= 8
@@ -292,29 +228,29 @@ class OpportunityEngine:
         market_score: int,
         sector_score: int,
     ) -> OpportunitySnapshot:
-        """Build the complete opportunity assessment."""
 
         reasons: list[str] = []
 
-        market_adjustment, market_reason = (
-            self.market_adjustment(
-                stock_score,
-                market_score,
-            )
+        valid_scores = self._scores_are_valid(
+            stock_score,
+            technical_score,
+            market_score,
+            sector_score,
         )
 
-        sector_adjustment, sector_reason = (
-            self.sector_adjustment(
-                stock_score,
-                sector_score,
-            )
+        market_adjustment, market_reason = self.market_adjustment(
+            stock_score,
+            market_score,
         )
 
-        technical_adjustment, technical_reason = (
-            self.technical_adjustment(
-                stock_score,
-                technical_score,
-            )
+        sector_adjustment, sector_reason = self.sector_adjustment(
+            stock_score,
+            sector_score,
+        )
+
+        technical_adjustment, technical_reason = self.technical_adjustment(
+            stock_score,
+            technical_score,
         )
 
         reasons.extend(
@@ -325,10 +261,6 @@ class OpportunityEngine:
             ]
         )
 
-        # ---------------------------------------------------------
-        # Opportunity score
-        # ---------------------------------------------------------
-
         opportunity_score = (
             stock_score
             + market_adjustment
@@ -336,23 +268,26 @@ class OpportunityEngine:
             + technical_adjustment
         )
 
-        # ---------------------------------------------------------
-        # Risk-control rules
-        # ---------------------------------------------------------
-
+        # Strong bearish market must restrict bullish stock.
         if stock_score > 0 and market_score <= -2:
             opportunity_score = min(
                 opportunity_score,
                 stock_score - 1,
             )
 
+        # Strong bullish market must soften bearish stock.
         elif stock_score < 0 and market_score >= 2:
             opportunity_score = max(
                 opportunity_score,
                 stock_score + 1,
             )
 
-        # Strongly aligned bearish setup.
+        # ---------------------------------------------------------
+        # BATIP normalization rule.
+        #
+        # A fully aligned extreme bearish setup is deliberately
+        # normalized to -6.
+        # ---------------------------------------------------------
         if (
             stock_score <= -8
             and technical_score <= -8
@@ -361,32 +296,34 @@ class OpportunityEngine:
         ):
             opportunity_score = -6
 
-        recommendation = (
-            self.recommendation_from_score(
+        if not valid_scores:
+            reasons.append(
+                "One or more source scores are outside the BATIP "
+                "normalized range of -10 to +10"
+            )
+            recommendation = "WATCH"
+        else:
+            recommendation = self.recommendation_from_score(
                 opportunity_score
             )
+
+        direction = self.direction_from_score(
+            opportunity_score
         )
 
-        direction = (
-            self.direction_from_score(
-                opportunity_score
-            )
+        intraday, overnight = self.trading_suitability(
+            opportunity_score,
+            technical_score,
+            market_score,
         )
 
-        intraday, overnight = (
-            self.trading_suitability(
-                opportunity_score,
-                technical_score,
-                market_score,
-            )
+        confidence = self.confidence_from_score(
+            opportunity_score,
+            technical_score,
         )
 
-        confidence = (
-            self.confidence_from_score(
-                opportunity_score,
-                technical_score,
-            )
-        )
+        if not valid_scores:
+            confidence = min(confidence, 50.0)
 
         return OpportunitySnapshot(
             stock_score=stock_score,
