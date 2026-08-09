@@ -36,13 +36,11 @@ class PaperPosition:
     @property
     def capital_deployed(self) -> float:
         """Capital deployed for the position."""
-
         return self.entry * self.quantity
 
     @property
     def maximum_loss(self) -> float:
         """Maximum loss if stop loss is hit."""
-
         return abs(self.entry - self.stop_loss) * self.quantity
 
     def update_price(self, price: float) -> None:
@@ -299,7 +297,6 @@ class PaperPositionEngine:
 
     def all_positions(self) -> list[PaperPosition]:
         """Return all paper positions."""
-
         return list(self._positions.values())
 
     def open_positions(self) -> list[PaperPosition]:
@@ -364,3 +361,16 @@ class PaperPositionEngine:
             )
 
         return self._positions.pop(symbol)
+
+
+class PositionManager(PaperPositionEngine):
+    """
+    Compatibility facade for TradeManager.
+
+    PositionManager intentionally inherits the existing
+    PaperPositionEngine so the existing position functionality
+    remains unchanged while TradeManager can use the expected
+    PositionManager name.
+    """
+
+    pass
