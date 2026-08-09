@@ -8,6 +8,10 @@ from .scoring import (
     PortfolioScoringEngine,
 )
 
+from .risk import (
+    PortfolioRiskEngine,
+    PortfolioRiskSnapshot,
+)
 
 __all__ = [
     "PortfolioSnapshot",
