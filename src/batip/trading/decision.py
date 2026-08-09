@@ -54,42 +54,6 @@ class TradeDecisionEngine:
             minimum_risk_reward=minimum_risk_reward,
         )
 
-    @staticmethod
-    def _direction_from_levels(
-        entry: float,
-        stop_loss: float,
-        target_1: float,
-        target_2: float,
-    ) -> str | None:
-        """
-        Determine trade direction from explicit price levels.
-
-        Long:
-            stop_loss < entry < target_1 < target_2
-
-        Short:
-            stop_loss > entry > target_1 > target_2
-
-        Returns None when the levels do not clearly describe
-        either a long or short setup.
-        """
-
-        if (
-            stop_loss < entry
-            and target_1 > entry
-            and target_2 > target_1
-        ):
-            return "Bullish"
-
-        if (
-            stop_loss > entry
-            and target_1 < entry
-            and target_2 < target_1
-        ):
-            return "Bearish"
-
-        return None
-
     def evaluate(
         self,
         *,
@@ -103,7 +67,6 @@ class TradeDecisionEngine:
         target_1: float | None = None,
         target_2: float | None = None,
     ) -> TradeDecision:
-        """Build a complete paper-trading decision."""
 
         opportunity = self.opportunity_engine.evaluate(
             stock_score=stock_score,
@@ -127,36 +90,11 @@ class TradeDecisionEngine:
             )
         )
 
-        # ---------------------------------------------------------
-        # Determine direction.
-        #
-        # If explicit trade levels are supplied and clearly define
-        # a long/short structure, use the price structure.
-        #
-        # Otherwise use the opportunity engine direction.
-        # ---------------------------------------------------------
-
-        direction = opportunity.direction
-
         if prices_available:
-            level_direction = self._direction_from_levels(
-                float(entry),
-                float(stop_loss),
-                float(target_1),
-                float(target_2),
-            )
 
-            if level_direction is not None:
-                direction = level_direction
-
-        # ---------------------------------------------------------
-        # Build setup.
-        # ---------------------------------------------------------
-
-        if prices_available:
             setup = self.setup_engine.build(
                 symbol=symbol,
-                direction=direction,
+                direction=opportunity.direction,
                 entry=entry,
                 stop_loss=stop_loss,
                 target_1=target_1,
@@ -170,19 +108,23 @@ class TradeDecisionEngine:
                 reasons.append(setup.reason)
 
         # ---------------------------------------------------------
-        # Determine trade action.
+        # Authorization policy
         #
-        # IMPORTANT:
-        # Score 70 is WATCH.
+        # STRONG BUY / STRONG SELL
+        #     valid setup -> TRADE
+        #     no setup    -> WATCH
         #
-        # Only a genuine strong recommendation with a valid setup
-        # is authorized for paper trading.
+        # BUY / SELL
+        #     WATCH
+        #
+        # WATCH
+        #     WATCH
+        #
+        # Invalid setup
+        #     AVOID
         # ---------------------------------------------------------
 
-        if opportunity.opportunity_score == 70:
-            trade_action = "WATCH"
-
-        elif setup is not None and not setup.valid:
+        if setup is not None and not setup.valid:
             trade_action = "AVOID"
 
         elif recommendation in {
@@ -204,10 +146,6 @@ class TradeDecisionEngine:
         else:
             trade_action = "AVOID"
 
-        # ---------------------------------------------------------
-        # Missing levels.
-        # ---------------------------------------------------------
-
         if (
             setup is None
             and recommendation in {
@@ -224,7 +162,7 @@ class TradeDecisionEngine:
             symbol=symbol,
             opportunity_score=opportunity.opportunity_score,
             recommendation=recommendation,
-            direction=direction,
+            direction=opportunity.direction,
             confidence=opportunity.confidence,
             intraday=opportunity.intraday,
             overnight=opportunity.overnight,

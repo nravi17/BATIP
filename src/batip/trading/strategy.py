@@ -121,7 +121,9 @@ class StrategyEngine:
     def classify_signal(score: float) -> str:
         """Classify score as TRADE, WATCH, or AVOID."""
 
-        if score >= StrategyEngine.TRADE_THRESHOLD:
+        # 70 is intentionally WATCH.
+        # TRADE requires a score strictly above 70.
+        if score > StrategyEngine.TRADE_THRESHOLD:
             return "TRADE"
 
         if score >= StrategyEngine.WATCH_THRESHOLD:
