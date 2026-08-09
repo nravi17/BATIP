@@ -13,6 +13,11 @@ from .risk import (
     PortfolioRiskSnapshot,
 )
 
+from .recommendation import (
+    PortfolioRecommendationEngine,
+    PortfolioRecommendationSnapshot,
+)
+
 __all__ = [
     "PortfolioSnapshot",
     "PortfolioSnapshotEngine",
