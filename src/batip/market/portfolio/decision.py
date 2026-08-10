@@ -14,7 +14,9 @@ class PortfolioDecisionSnapshot:
     """Final portfolio decision."""
 
     symbol: str
-    decision: str
+    action: str
+    score: int
+    risk: str
     confidence: float
 
 
@@ -33,22 +35,6 @@ class PortfolioDecisionEngine:
             return data.get(field, default)
 
         return getattr(data, field, default)
-
-    @staticmethod
-    def _decision(
-        action: str,
-        risk: str,
-    ) -> str:
-        """Apply portfolio risk overrides to the recommendation."""
-
-        action = action.upper()
-        risk = risk.upper()
-
-        if risk == "HIGH":
-            if action in {"STRONG BUY", "BUY"}:
-                return "HOLD"
-
-        return action
 
     def analyze(
         self,
@@ -75,13 +61,25 @@ class PortfolioDecisionEngine:
             self._value(data, "confidence", 0)
         )
 
-        decision = self._decision(
-            action,
-            risk,
+        score = int(
+            self._value(data, "score", 0)
         )
+
+        # --- Decision Flow ---
+        final_action = action
+
+        # High-risk protection
+        if risk == "HIGH" and final_action in {"BUY", "STRONG BUY"}:
+            final_action = "HOLD"
+
+        # Low-confidence protection
+        if confidence < 60 and final_action in {"BUY", "STRONG BUY"}:
+            final_action = "HOLD"
 
         return PortfolioDecisionSnapshot(
             symbol=symbol,
-            decision=decision,
+            action=final_action,
+            score=score,
+            risk=risk,
             confidence=confidence,
         )

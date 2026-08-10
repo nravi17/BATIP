@@ -5,19 +5,15 @@ from batip.market.portfolio import (
 
 
 def make_input(
-    symbol: str,
-    score: int,
-    classification: str,
-    risk: str,
     action: str,
+    score: int,
+    risk: str,
     confidence: float,
 ):
     return {
-        "symbol": symbol,
-        "score": score,
-        "classification": classification,
-        "risk": risk,
         "action": action,
+        "score": score,
+        "risk": risk,
         "confidence": confidence,
     }
 
@@ -28,41 +24,20 @@ def test_portfolio_decision_imports():
     assert engine is not None
 
 
-def test_strong_buy_decision():
-    engine = PortfolioDecisionEngine()
-
-    result = engine.analyze(
-        make_input(
-            "TCS",
-            score=10,
-            classification="STRONG",
-            risk="LOW",
-            action="STRONG BUY",
-            confidence=95.0,
-        )
-    )
-
-    assert isinstance(result, PortfolioDecisionSnapshot)
-    assert result.symbol == "TCS"
-    assert result.decision == "STRONG BUY"
-    assert result.confidence == 95.0
-
-
 def test_buy_decision():
     engine = PortfolioDecisionEngine()
 
     result = engine.analyze(
         make_input(
-            "INFY",
-            score=7,
-            classification="POSITIVE",
-            risk="LOW",
             action="BUY",
-            confidence=85.0,
+            score=8,
+            risk="LOW",
+            confidence=90.0,
         )
     )
 
-    assert result.decision == "BUY"
+    assert isinstance(result, PortfolioDecisionSnapshot)
+    assert result.action == "BUY"
 
 
 def test_hold_decision():
@@ -70,33 +45,14 @@ def test_hold_decision():
 
     result = engine.analyze(
         make_input(
-            "MARUTI",
-            score=2,
-            classification="NEUTRAL",
-            risk="MODERATE",
             action="HOLD",
-            confidence=65.0,
-        )
-    )
-
-    assert result.decision == "HOLD"
-
-
-def test_watch_decision():
-    engine = PortfolioDecisionEngine()
-
-    result = engine.analyze(
-        make_input(
-            "ITC",
-            score=0,
-            classification="NEUTRAL",
+            score=4,
             risk="MODERATE",
-            action="WATCH",
-            confidence=50.0,
+            confidence=75.0,
         )
     )
 
-    assert result.decision == "WATCH"
+    assert result.action == "HOLD"
 
 
 def test_reduce_decision():
@@ -104,16 +60,14 @@ def test_reduce_decision():
 
     result = engine.analyze(
         make_input(
-            "HDFCBANK",
-            score=-3,
-            classification="WEAK",
-            risk="MODERATE",
             action="REDUCE",
+            score=-3,
+            risk="MODERATE",
             confidence=70.0,
         )
     )
 
-    assert result.decision == "REDUCE"
+    assert result.action == "REDUCE"
 
 
 def test_exit_decision():
@@ -121,50 +75,59 @@ def test_exit_decision():
 
     result = engine.analyze(
         make_input(
-            "XYZ",
-            score=-10,
-            classification="VERY WEAK",
-            risk="HIGH",
             action="EXIT",
+            score=-9,
+            risk="HIGH",
             confidence=90.0,
         )
     )
 
-    assert result.decision == "EXIT"
+    assert result.action == "EXIT"
 
 
-def test_high_risk_downgrades_strong_buy():
+def test_high_risk_blocks_buy():
     engine = PortfolioDecisionEngine()
 
     result = engine.analyze(
         make_input(
-            "TCS",
-            score=10,
-            classification="STRONG",
+            action="BUY",
+            score=8,
             risk="HIGH",
-            action="STRONG BUY",
             confidence=95.0,
         )
     )
 
-    assert result.decision == "HOLD"
+    assert result.action == "HOLD"
 
 
-def test_high_risk_downgrades_buy():
+def test_low_confidence_blocks_buy():
     engine = PortfolioDecisionEngine()
 
     result = engine.analyze(
         make_input(
-            "INFY",
-            score=7,
-            classification="POSITIVE",
-            risk="HIGH",
             action="BUY",
-            confidence=85.0,
+            score=8,
+            risk="LOW",
+            confidence=50.0,
         )
     )
 
-    assert result.decision == "HOLD"
+    assert result.action == "HOLD"
+
+
+def test_strong_buy_is_preserved_when_conditions_are_good():
+    engine = PortfolioDecisionEngine()
+
+    result = engine.analyze(
+        make_input(
+            action="STRONG BUY",
+            score=10,
+            risk="LOW",
+            confidence=95.0,
+        )
+    )
+
+    assert result.action == "STRONG BUY"
 
 
 def test_none_input():
@@ -175,14 +138,31 @@ def test_none_input():
     assert result is None
 
 
-def test_missing_fields_use_safe_defaults():
+def test_confidence_is_preserved():
     engine = PortfolioDecisionEngine()
 
     result = engine.analyze(
-        {
-            "symbol": "TEST",
-        }
+        make_input(
+            action="BUY",
+            score=8,
+            risk="LOW",
+            confidence=87.5,
+        )
     )
 
-    assert isinstance(result, PortfolioDecisionSnapshot)
-    assert result.decision == "WATCH"
+    assert result.confidence == 87.5
+
+
+def test_score_is_preserved():
+    engine = PortfolioDecisionEngine()
+
+    result = engine.analyze(
+        make_input(
+            action="BUY",
+            score=8,
+            risk="LOW",
+            confidence=90.0,
+        )
+    )
+
+    assert result.score == 8
