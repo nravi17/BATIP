@@ -33,6 +33,11 @@ from .execution import (
     PortfolioExecutionSnapshot,
 )
 
+from .allocation import (
+    PortfolioAllocationEngine,
+    PortfolioAllocationSnapshot,
+)
+
 __all__ = [
     "PortfolioSnapshot",
     "PortfolioSnapshotEngine",
