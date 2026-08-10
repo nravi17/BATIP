@@ -38,6 +38,11 @@ from .allocation import (
     PortfolioAllocationSnapshot,
 )
 
+from .pipeline import (
+    PortfolioPipelineEngine,
+    PortfolioPipelineSnapshot,
+)
+
 __all__ = [
     "PortfolioSnapshot",
     "PortfolioSnapshotEngine",
@@ -51,4 +56,6 @@ __all__ = [
     "PortfolioIntelligenceEngine",
     "PortfolioDecisionEngine",
     "PortfolioDecisionSnapshot",
+    "PortfolioPipelineEngine",
+    "PortfolioPipelineSnapshot",
 ]
