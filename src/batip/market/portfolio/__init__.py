@@ -28,6 +28,11 @@ from .decision import (
     PortfolioDecisionSnapshot,
 )
 
+from .execution import (
+    PortfolioExecutionEngine,
+    PortfolioExecutionSnapshot,
+)
+
 __all__ = [
     "PortfolioSnapshot",
     "PortfolioSnapshotEngine",
