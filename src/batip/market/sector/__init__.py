@@ -166,6 +166,11 @@ from .rotation import (
     SectorRotationSnapshot,
 )
 
+from .snapshot import (
+    SectorIntelligenceSnapshot,
+    SectorSnapshotEngine,
+)
+
 __all__ = [
     "SectorScanner",
     "SectorSnapshot",
@@ -175,4 +180,6 @@ __all__ = [
     "SectorRotationEngine",
     "SectorRotationItem",
     "SectorRotationSnapshot",
+    "SectorIntelligenceSnapshot",
+    "SectorSnapshotEngine",
 ]
