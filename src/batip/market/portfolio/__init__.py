@@ -23,6 +23,11 @@ from .intelligence import (
     PortfolioIntelligenceSnapshot,
 )
 
+from .decision import (
+    PortfolioDecisionEngine,
+    PortfolioDecisionSnapshot,
+)
+
 __all__ = [
     "PortfolioSnapshot",
     "PortfolioSnapshotEngine",
@@ -34,4 +39,6 @@ __all__ = [
     "PortfolioRecommendationEngine",
     "PortfolioIntelligenceSnapshot",
     "PortfolioIntelligenceEngine",
+    "PortfolioDecisionEngine",
+    "PortfolioDecisionSnapshot",
 ]
