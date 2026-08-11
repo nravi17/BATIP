@@ -167,19 +167,25 @@ from .rotation import (
 )
 
 from .snapshot import (
-    SectorIntelligenceSnapshot,
+    SectorSnapshot,
     SectorSnapshotEngine,
+)
+
+from .intelligence import (
+    SectorIntelligenceEngine,
+    SectorIntelligenceSnapshot,
 )
 
 __all__ = [
     "SectorScanner",
     "SectorSnapshot",
+    "SectorSnapshotEngine",
     "SectorStrengthEngine",
     "SectorStrengthSnapshot",
     "SectorRotation",
     "SectorRotationEngine",
     "SectorRotationItem",
     "SectorRotationSnapshot",
+    "SectorIntelligenceEngine",
     "SectorIntelligenceSnapshot",
-    "SectorSnapshotEngine",
 ]

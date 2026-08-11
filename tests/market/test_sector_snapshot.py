@@ -1,7 +1,8 @@
 from batip.market.sector import (
-    SectorIntelligenceSnapshot,
+    SectorSnapshot,
     SectorSnapshotEngine,
 )
+
 
 
 def make_input(**overrides):
@@ -28,7 +29,7 @@ def test_sector_snapshot_returns_snapshot():
 
     result = engine.analyze(make_input())
 
-    assert isinstance(result, SectorIntelligenceSnapshot)
+    assert isinstance(result, SectorSnapshot)
 
 
 def test_sector_snapshot_preserves_sector():
