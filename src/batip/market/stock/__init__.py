@@ -27,6 +27,10 @@ from .intelligence import (
     StockIntelligenceSnapshot,
 )
 
+from .snapshot import (
+    StockSnapshotEngine,
+)
+
 __all__ = [
     "StockScanner",
     "StockSnapshot",
@@ -39,4 +43,5 @@ __all__ = [
     "StockSignalSnapshot",
     "StockIntelligenceEngine",
     "StockIntelligenceSnapshot",
+    "StockSnapshotEngine",
 ]

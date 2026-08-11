@@ -25,7 +25,8 @@ class StockSnapshot:
     score: int = 0
     direction: str = "Neutral"
     recommendation: str = "WATCH"
-
+    market_bias: str = "Neutral"
+    confidence: float = 0.0
 
 class StockScanner:
     """Deterministic stock scoring and ranking engine."""
